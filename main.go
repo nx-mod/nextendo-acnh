@@ -1,11 +1,13 @@
 // Command acnh fait tourner les serveurs en ligne d'Animal Crossing: New Horizons
 // (authentification + sécurisé) sur la pile NEX maison — notre propre implémentation
-// fermée, sans code tiers copyleft.
+// fermée, sans aucun code  de the previous stack.
 //
-// Il remplace le couple the previous stack the previous stack / the previous stack. Ce portage a trois
+// Il remplace le couple the previous stack acnh-auth-local / acnh-secure-local. Ce portage a trois
 // raisons, dans cet ordre d'importance :
 //
-//  1. Licence. the previous stack est sous a copyleft license : l'exécuter comme service réseau a des implications de licence que le cœur maison évite, et Animal Crossing était le dernier jeu resté
+//  1. Licence. the previous stack est sous -3.0 : la faire tourner comme service en réseau ouvre
+//     à quiconque s'y connecte le droit d'en réclamer les sources. C'est exactement ce que
+//     le cœur maison a été écrit pour éviter, et Animal Crossing était le dernier jeu resté
 //     dessus.
 //  2. Exploitation. Éviction des connexions mortes, kick administrateur, tableau de bord
 //     fermé par défaut : tout cela vit dans le cœur et ne s'appliquait donc pas à ACNH.
@@ -174,7 +176,7 @@ func main() {
 	go startDashboard(secureEndpoint, mm)
 	startPresenceReporter()
 
-	// Quand l'authentification est derrière un proxy TLS-passthrough (the reverse proxy sur le :443
+	// Quand l'authentification est derrière un proxy TLS-passthrough (a reverse-proxy sur le :443
 	// partagé), activer le protocole PROXY pour qu'elle voie la VRAIE IP de la console.
 	proxyProto := os.Getenv("NEXTENDO_PROXY_PROTOCOL") == "1"
 	go func() {
@@ -298,6 +300,7 @@ func resolveUser(username string, extraData []byte) (uint64, []byte, bool) {
 // rejected even though their HMAC is valid, without rotating the shared secret. Populated
 // per deployment.
 var revokedNexPayloads = map[string]bool{
+
 }
 // nextendoPIDFromToken valide un jeton « nx2.<b64(pid.username.expiry)>.<b64(hmac)> »
 // signé par le service de comptes (HMAC-SHA256, préfixe « nex: »).
@@ -319,7 +322,7 @@ func nextendoPIDFromToken(s string) (uint64, bool) {
 	if !hmac.Equal([]byte(want), []byte(parts[1])) {
 		return 0, false
 	}
-	if revokedNexPayloads[string(raw)] { // jeton fuité (release 1.6.5-win) — refusé malgré une signature valide
+	if revokedNexPayloads[string(raw)] { // jeton revoque : refuse malgre une signature valide
 		return 0, false
 	}
 	f := strings.SplitN(string(raw), ".", 3) // pid.username.expiry
